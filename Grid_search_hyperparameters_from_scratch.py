@@ -1,8 +1,8 @@
+import sys
 import inspect
 from tqdm import tqdm
 from itertools import product
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, max_error, mean_squared_error, \
-    r2_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, max_error, mean_squared_error, r2_score
 
 
 def grid_search(classifier,
@@ -31,33 +31,36 @@ def grid_search(classifier,
     #   Checks if all entered parameters and score are exist in parameters
     #   of the classifier and list if scores in requirements
     try:
-        all(item in inspect.getfullargspec(classifier.__init__).args
-            for item in list(params_dict.keys()))
-        raise SystemExit(
-            'entered parameters do not match parameters of the classifier')
+        [
+            inspect.getfullargspec(classifier.__init__).args.index(i)
+            for i in key_list
+        ]
     except:
+        raise SystemExit(
+            'Error: entered parameters do not match parameters of the classifier'
+        )
+        sys.exit(1)
+    try:
+        (accuracy_score, f1_score, precision_score, recall_score, max_error,
+         mean_squared_error, r2_score).index(score)
+    except:
+        raise SystemExit('Error: entered score does not match requirements')
+        sys.exit(1)
 
-        try:
-            score not in (accuracy_score, f1_score, precision_score,
-                          recall_score, max_error, mean_squared_error,
-                          r2_score)
-            raise SystemExit('entered score does not match requirements')
-        except:
+    for params in tqdm(product(*values_lists)):
+        params_dict = {
+            key_list[0]: params[0],
+            key_list[1]: params[1],
+            key_list[2]: params[2],
+            key_list[3]: params[3]
+        }
 
-            for params in tqdm(product(*values_lists)):
-                params_dict = {
-                    key_list[0]: params[0],
-                    key_list[1]: params[1],
-                    key_list[2]: params[2],
-                    key_list[3]: params[3]
-                }
+        clf = classifier(**params_dict)
+        clf.fit(x_train_inp, y_train_inp)
+        y_pred = clf.predict(x_test_inp)
+        score_inp = score(y_test_inp, y_pred)
 
-                clf = classifier(**params_dict)
-                clf.fit(x_train_inp, y_train_inp)
-                y_pred = clf.predict(x_test_inp)
-                score_inp = score(y_test_inp, y_pred)
-
-                if score_inp > best_score:
-                    best_params = params
-                    best_score = score_inp
-            return best_score, dict(zip(key_list, best_params))
+        if score_inp > best_score:
+            best_params = params
+            best_score = score_inp
+    return best_score, dict(zip(key_list, best_params))
