@@ -30,22 +30,7 @@ def grid_search(classifier,
 
     #   Checks if all entered parameters and score are exist in parameters
     #   of the classifier and list if scores in requirements
-    try:
-        [
-            inspect.getfullargspec(classifier.__init__).args.index(i)
-            for i in key_list
-        ]
-    except:
-        raise SystemExit(
-            'Error: entered parameters do not match parameters of the classifier'
-        )
-        sys.exit(1)
-    try:
-        (accuracy_score, f1_score, precision_score, recall_score, max_error,
-         mean_squared_error, r2_score).index(score)
-    except:
-        raise SystemExit('Error: entered score does not match requirements')
-        sys.exit(1)
+
 
     for params in tqdm(product(*values_lists)):
         params_dict = {
